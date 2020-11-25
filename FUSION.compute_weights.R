@@ -1,6 +1,6 @@
 # ==== TODO
 # * Make sure BLUP/BSLMM weights are being scaled properly based on MAF
-
+# Load dependencies
 suppressMessages(library("optparse"))
 suppressMessages(library('plink2R'))
 suppressMessages(library('glmnet'))
@@ -51,24 +51,28 @@ option_list = list(
 )
 
 opt = parse_args(OptionParser(option_list=option_list))
-models = unique( c(unlist(strsplit(opt$models,',')),"top1") )
+models = unique( c(unlist(strsplit(opt$models,','))))
 M = length(models)
 
 if ( opt$verbose == 2 ) {
-  SYS_PRINT = F
+  SYS_PRINT = FALSE
 } else {
-  SYS_PRINT = T
+  SYS_PRINT = TRUE
 }
 
 # --- PREDICTION MODELS
 
 # BSLMM
 weights.bslmm = function( input , bv_type , snp , out=NA ) {
-	if ( is.na(out) ) out = paste(input,".BSLMM",sep='')
-
-	arg = paste( opt$PATH_gemma , " -miss 1 -maf 0 -r2 1 -rpace 1000 -wpace 1000 -bfile " , input , " -bslmm " , bv_type , " -o " , out , sep='' )
+	if (is.na(out)) out = paste(input,".BSLMM",sep='')
+  outdir <- dirname(input)
+  out <- paste(basename(input), ".BSLMM", sep = '')
+	arg = paste( opt$PATH_gemma , " -miss 1 -maf 0 -r2 1 -rpace 1000 -wpace 1000 -bfile " , input , " -bslmm " , bv_type ," -outdir ", outdir  ," -o " , out, sep='' )
 	system( arg , ignore.stdout=SYS_PRINT,ignore.stderr=SYS_PRINT)
-	eff = read.table( paste(out,".param.txt",sep=''),head=T,as.is=T)
+	
+	# Set eff table name
+	eff_table_name <- paste(outdir, "/", out, ".param.txt", sep = "")
+	eff = read.table( eff_table_name,head=T,as.is=T)
 	eff.wgt = rep(NA,length(snp))
 	m = match( snp , eff$rs )
 	m.keep = !is.na(m)
@@ -123,6 +127,7 @@ cleanup = function() {
 	}
 }
 
+# Start here
 # Perform i/o checks here:
 files = paste(opt$bfile,c(".bed",".bim",".fam"),sep='')
 if ( !is.na(opt$pheno) ) files = c(files,opt$pheno)
@@ -309,10 +314,10 @@ for ( i in 1:opt$crossval ) {
 
 	for ( mod in 1:M ) {
 		if ( models[mod] == "blup" ) {
-			pred.wgt = weights.bslmm( cv.file , bv_type=2 , snp=genos$bim[,2] )
+			pred.wgt = weights.bslmm( cv.file , bv_type=2 , snp=genos$bim[,2])
 		}
 		else if ( models[mod] == "bslmm" ) {
-			pred.wgt = weights.bslmm( cv.file , bv_type=1 , snp=genos$bim[,2] )
+			pred.wgt = weights.bslmm( cv.file , bv_type=1 , snp=genos$bim[,2])
 		}		
 		else if ( models[mod] == "lasso" ) {
 			pred.wgt = weights.lasso( cv.file , hsq[1] , snp=genos$bim[,2] )
