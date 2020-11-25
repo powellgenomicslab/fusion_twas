@@ -67,9 +67,14 @@ weights.bslmm = function( input , bv_type , snp , out=NA ) {
 	if (is.na(out)){ out = paste(input,".BSLMM",sep='')
   	outdir <- dirname(input)
   	out <- paste(basename(input), ".BSLMM", sep = '')
+  	arg = paste( opt$PATH_gemma , " -miss 1 -maf 0 -r2 1 -rpace 1000 -wpace 1000 -bfile " , input , " -bslmm " , bv_type ," -outdir ", outdir  ," -o " , out, sep='' )
+	} else{
+	  outdir <-dirname(out)
+	  out <- paste(basename(outdir), ".BSLMM", sep = '')
+	  arg = paste( opt$PATH_gemma , " -miss 1 -maf 0 -r2 1 -rpace 1000 -wpace 1000 -bfile " , input , " -bslmm " , bv_type ," -outdir ", outdir  ," -o " , out, sep='' )
 	}
   
-	arg = paste( opt$PATH_gemma , " -miss 1 -maf 0 -r2 1 -rpace 1000 -wpace 1000 -bfile " , input , " -bslmm " , bv_type ," -outdir ", outdir  ," -o " , out, sep='' )
+
 	system( arg , ignore.stdout=SYS_PRINT,ignore.stderr=SYS_PRINT)
 	
 	# Set eff table name
