@@ -1,6 +1,6 @@
 args = commandArgs(trailingOnly=T)
 
-cluster <- arg[1]
+cluster <- args[1]
 chrom <- args[2]
 
 print(sprintf("Cluster %s - Chromosome %s", cluster, chrom))
