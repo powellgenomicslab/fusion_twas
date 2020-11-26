@@ -1,6 +1,14 @@
 arg = commandArgs(trailingOnly=T)
 
-lst = read.table(arg[1],as.is=T)[,1]
+cluster <- arg[1]
+chrom <- args[2]
+
+print(sprintf("Cluster %s - Chromosome %s", cluster, chrom))
+
+input_glob <- paste0("/directflow/SCCGGroupShare/projects/annsen/analysis/AMD_scRNA/twas_analysis", "/", "outputs", "/", cluster, "/", "Chr", chrom, "/", "weights", "/", "*.wgt.RDat")
+output_file <- paste0("/directflow/SCCGGroupShare/projects/annsen/analysis/AMD_scRNA/twas_analysis", "/", "outputs", "/", cluster, "/", cluster, "_", "Chr", chrom, "_ModelSummary.txt")
+
+lst = Sys.glob(input_glob)
 names = gsub(".wgt.RDat","",basename(lst))
 N = length(lst)
 
@@ -23,12 +31,20 @@ mat.mod.rsq[i,] = cv.performance[1,m]
 mat.mod.pv[i,] = cv.performance[2,m]
 }
 
+# Build this table properly so we can actually review this
+summary_df <- data.frame(id = names, nsnps = mat.snps[,1])
+hsq_mat <- cbind(mat.hsq, mat.hsqpv)
+hsq_df <- as.data.frame(hsq_mat)
+colnames(hsq_df) <- c("hsq", "hsq.se", "hsq.pv")
+mod_df <- cbind(mat.mod.rsq, mat.mod.pv)
+colnames(mod_df) <- c(paste(models,"r2",sep='.') , paste(models,"pv",sep='.'))
+summary_df <- as.data.frame(cbind(summary_df, hsq_df))
+summary_df <- as.data.frame(cbind(summary_df, mod_df))
+summary_df <- format(summary_df, digits = 3)
+write.csv(summary_df, output_file)
 
-write.table( 
-cbind( names , mat.snps , format(mat.hsq,digits=2) , format(mat.hsqpv,digits=2) , format(round(mat.mod.rsq,3),digits=3) , format(mat.mod.pv,digits=2) ),
-quote=F,
-col.names=colnames,
-row.names=F,sep='\t')
+#write.table( cbind( names , mat.snps , format(mat.hsq,digits=2) , format(mat.hsqpv,digits=2) , format(round(mat.mod.rsq,3),digits=3) , format(mat.mod.pv,digits=2) ),
+#quote=F, col.names=colnames, row.names=F,sep='\t')
 best = apply(mat.mod.rsq,1,max,na.rm=T)
 
 options(digits=3)
