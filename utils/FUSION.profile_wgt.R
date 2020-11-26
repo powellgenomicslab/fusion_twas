@@ -1,4 +1,4 @@
-arg = commandArgs(trailingOnly=T)
+args = commandArgs(trailingOnly=T)
 
 cluster <- arg[1]
 chrom <- args[2]
