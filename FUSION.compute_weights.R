@@ -51,6 +51,7 @@ option_list = list(
 )
 
 opt = parse_args(OptionParser(option_list=option_list))
+
 models = unique( c(unlist(strsplit(opt$models,','))))
 M = length(models)
 
@@ -384,7 +385,27 @@ for ( mod in 1:M ) {
 
 # save weights, rsq, p-value for each model, and hsq to output
 snps = genos$bim
-save( wgt.matrix , snps , cv.performance , hsq, hsq.pv, N.tot , file = paste( opt$out , ".wgt.RDat" , sep='' ) )
+colnames(snps) = c("CHROM", "snps", "dist", "POS", "ALT", "REF")
+
+# Replace genome IDs with rsIDs
+library(tidyverse)
+chrom <- unique(snps[, 1])
+hrc_ref <- read_tsv(paste0("/directflow/SCCGGroupShare/projects/data/reference_data/HRC/HRC_Chr_TAB/hrc_rsids/", "hrc_chr", chrom, ".txt"))
+hrc_ref <- hrc_ref %>% select(CHROM, POS, ID, ALT, REF) 
+common_ref <- left_join(snps, hrc_ref, by = c("CHROM", "POS", "ALT", "REF"))
+common_ref <- common_ref %>% drop_na()
+
+# Remove snps that are not in the list
+snps <- snps[snps$snps %in% common_ref$snps, ]
+wgt.matrix <- wgt.matrix[snps$snps, ]
+
+# Rearrange ref to match outputs
+common_ref <- common_ref[match(rownames(wgt.matrix), common_ref$snps), ]
+snps$snps <- common_ref$ID
+rownames(wgt.matrix) <- common_ref$ID
+
+save( wgt.matrix , snps , cv.performance , hsq, hsq.pv, N.tot , file = paste( opt$out , ".wgt.RDat" , sep='' ))
+
 # --- CLEAN-UP
 if ( opt$verbose >= 1 ) cat("Cleaning up\n")
 cleanup()
