@@ -5,7 +5,7 @@ setDTthreads(7)
 cluster <- args[1]
 
 # Define output filenames
-output_dir <- paste0("/directflow/SCCGGroupShare/projects/annsen/analysis/AMD_scRNA/twas_analysis/outputs/", cluster, "/fusion/")
+output_dir <- paste0("/directflow/SCCGGroupShare/projects/annsen/analysis/AMD_scRNA/twas_analysis/outputs/", cluster)
 weights_dir <- paste0(output_dir, "WEIGHTS/")
 pos_output <- paste0(output_dir, cluster, ".pos")
 profile_output <- paste0(output_dir, cluster, ".profile")
