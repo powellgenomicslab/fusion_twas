@@ -5,16 +5,17 @@ setDTthreads(7)
 cluster <- args[1]
 
 # Define output filenames
+inputs_dir <- paste0("/directflow/SCCGGroupShare/projects/annsen/analysis/AMD_scRNA/twas_analysis/processed/", cluster)
 output_dir <- paste0("/directflow/SCCGGroupShare/projects/annsen/analysis/AMD_scRNA/twas_analysis/outputs/", cluster)
-weights_dir <- paste0(output_dir, "WEIGHTS/")
-pos_output <- paste0(output_dir, cluster, ".pos")
-profile_output <- paste0(output_dir, cluster, ".profile")
-profile_err <- paste0(profile_output, ".err")
-weights_list_output <- paste0(output_dir, cluster, ".list")
+
+weights_dir <- paste0(output_dir, "/", "WEIGHTS/")
+pos_output <- paste0(output_dir, "/", cluster, ".pos")
+profile_output <- paste0(output_dir, "/", cluster, ".profile")
+profile_err <- paste0(output_dir, "/", cluster, ".err")
+weights_list_output <- paste0(output_dir, "/", cluster, ".list")
 
 input_glob <- Sys.glob(paste0(weights_dir, "*.wgt.RDat"))
-file_list <- paste0("WEIGHTS", "/", basename(input_glob))
-weights_list_df <- data.table(file = file_list)
+weights_list_df <- data.table(file = paste0("WEIGHTS/", basename(input_glob)))
 fwrite(weights_list_df, weights_list_output, row.names = FALSE, col.names = FALSE)
 
 names = gsub(".wgt.RDat","",basename(input_glob))
@@ -84,7 +85,7 @@ gene_output_df <- merge(gene_df, gene_ref, by = "ensembl_gene_id")
 gene_output_df <- gene_output_df[, c("ensembl_gene_id", "gene_symbol", "CHR", "P0", "P1")]
 colnames(gene_output_df) <- c("WGT", "ID", "CHR", "P0", "P1")
 gene_output_df <- gene_output_df[match(names, gene_output_df$WGT), ]
-gene_output_df$WGT <- paste0("WEIGHTS/", gene_output_df$WGT, ".wgt.RDat")
+gene_output_df$WGT <- paste0("WEIGHT/",gene_output_df$WGT, ".wgt.RDat")
 fwrite(gene_output_df, pos_output, sep = "\t")
 
 print(sprintf("%s FUSION TWAS files complete!", cluster))
